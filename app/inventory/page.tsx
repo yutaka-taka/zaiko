@@ -21,10 +21,7 @@ const dateColor = (s: string) => {
   if (!s) return '#555';
   const today = new Date();
   const currentYM = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-  const in3months = new Date(today.getFullYear(), today.getMonth() + 3, 1);
-  const thresholdYM = `${in3months.getFullYear()}-${String(in3months.getMonth() + 1).padStart(2, '0')}`;
   if (s <= currentYM) return '#c0392b';
-  if (s < thresholdYM) return '#e06b2a';
   return '#555';
 };
 
