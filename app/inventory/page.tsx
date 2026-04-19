@@ -31,15 +31,18 @@ const dateColor = (s: string) => {
 export default function InventoryPage() {
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<SortKey>('name');
   const [selected, setSelected] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Item | null>(null);
   const [noSelAlert, setNoSelAlert] = useState(false);
 
   const load = useCallback(async () => {
+    setLoading(true);
     const res = await fetch('/api/items');
     const data: Item[] = await res.json();
     setItems(data);
+    setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -156,9 +159,11 @@ export default function InventoryPage() {
             </div>
           </div>
         ))}
-        {sorted.length === 0 && (
+        {loading ? (
+          <p className="text-center text-gray-400 text-sm mt-12">読み込み中…</p>
+        ) : sorted.length === 0 ? (
           <p className="text-center text-gray-400 text-sm mt-12">登録された商品がありません</p>
-        )}
+        ) : null}
       </div>
 
       {/* フッター（固定） */}
