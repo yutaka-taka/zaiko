@@ -1,21 +1,24 @@
 import { NextResponse } from 'next/server';
 
 const RAKUTEN_APP_ID = process.env.RAKUTEN_APP_ID;
+const RAKUTEN_ACCESS_KEY = process.env.RAKUTEN_ACCESS_KEY;
 
 export async function GET(_req: Request, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   try {
-    const url = new URL('https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601');
+    const url = new URL('https://openapi.rakuten.co.jp/ichibaproduct/api/Product/Search/20250801');
     url.searchParams.set('format', 'json');
     url.searchParams.set('applicationId', RAKUTEN_APP_ID!);
-    url.searchParams.set('jan', code);
-    url.searchParams.set('hits', '1');
+    url.searchParams.set('accessKey', RAKUTEN_ACCESS_KEY!);
+    url.searchParams.set('productCode', code);
 
     const res = await fetch(url.toString(), { next: { revalidate: 86400 } });
     const data = await res.json();
-    if (data.Items?.[0]?.Item?.itemName) {
-      const name = (data.Items[0].Item.itemName as string).trim().slice(0, 30);
-      return NextResponse.json({ name });
+    const product = data.Products?.[0]?.Product;
+    if (product) {
+      const rawName: string = product.productName || product.brandName || '';
+      const name = rawName.trim().slice(0, 30);
+      if (name) return NextResponse.json({ name });
     }
   } catch {
     // fall through
