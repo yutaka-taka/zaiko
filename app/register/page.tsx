@@ -17,8 +17,8 @@ export default function RegisterPage() {
 
   const displayDate = (s: string) => {
     if (!s) return '';
-    const [y, m, d] = s.split('-');
-    return `${y}/${m}/${d}`;
+    const [y, m] = s.split('-');
+    return `${y}/${m}`;
   };
 
   const handleScanResult = async (code: string) => {
@@ -32,11 +32,11 @@ export default function RegisterPage() {
     }
   };
 
-  const isPastDate = (s: string) => {
+  const isBeforeCurrentMonth = (s: string) => {
     if (!s) return false;
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return new Date(s) < today;
+    const currentYM = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    return s < currentYM;
   };
 
   const doRegister = async () => {
@@ -56,7 +56,7 @@ export default function RegisterPage() {
 
   const handleRegister = () => {
     if (!name.trim() || !expiresAt) return;
-    if (isPastDate(expiresAt)) {
+    if (isBeforeCurrentMonth(expiresAt)) {
       setConfirmPast(true);
     } else {
       doRegister();
@@ -132,7 +132,7 @@ export default function RegisterPage() {
                 type="text"
                 value={displayDate(expiresAt)}
                 readOnly
-                placeholder="YYYY/MM/DD"
+                placeholder="YYYY/MM"
                 onClick={() => setShowCal(true)}
                 className="flex-1 px-3.5 py-3 border-[1.5px] border-[#e8eee9] rounded-xl text-[15px] outline-none cursor-pointer focus:border-[#2da87d]"
                 style={{ color: expiresAt ? '#1a2e26' : '#bbb' }}
@@ -198,7 +198,7 @@ export default function RegisterPage() {
         >
           <div className="bg-white rounded-2xl p-6 w-full shadow-xl">
             <p className="text-[15px] font-bold text-[#1a2e26] text-center mb-6">
-              有効期限は過去ですがよいですか？
+              有効期限が先月以前ですがよいですか？
             </p>
             <div className="flex gap-3">
               <button

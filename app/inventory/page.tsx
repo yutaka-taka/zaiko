@@ -12,20 +12,19 @@ interface Item {
 }
 
 const formatDate = (s: string) => {
-  const d = new Date(s);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}/${m}/${day}`;
+  if (!s) return '';
+  const [y, m] = s.split('-');
+  return `${y}/${m}`;
 };
 
 const dateColor = (s: string) => {
+  if (!s) return '#555';
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const exp = new Date(s);
-  const diff = (exp.getTime() - today.getTime()) / 86400000;
-  if (diff < 0) return '#c0392b';
-  if (diff <= 90) return '#e06b2a';
+  const currentYM = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const in3months = new Date(today.getFullYear(), today.getMonth() + 3, 1);
+  const thresholdYM = `${in3months.getFullYear()}-${String(in3months.getMonth() + 1).padStart(2, '0')}`;
+  if (s < currentYM) return '#c0392b';
+  if (s < thresholdYM) return '#e06b2a';
   return '#555';
 };
 
