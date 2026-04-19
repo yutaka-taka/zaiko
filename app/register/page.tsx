@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [showCal, setShowCal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [confirmPast, setConfirmPast] = useState(false);
+  const [nameFocused, setNameFocused] = useState(false);
 
   const displayDate = (s: string) => {
     if (!s) return '';
@@ -111,13 +112,19 @@ export default function RegisterPage() {
               <span className="bg-[#e8f5f0] text-[#1a7a5e] text-[10px] px-1.5 py-0.5 rounded">必須</span>
               <span className="ml-auto text-[11px] text-gray-300">{name.length} / 30</span>
             </div>
-            <input
-              type="text"
+            <textarea
               value={name}
               onChange={e => setName(e.target.value.slice(0, 30))}
+              onFocus={() => setNameFocused(true)}
+              onBlur={() => setNameFocused(false)}
               placeholder="商品名を入力（最大30文字）"
-              className="w-full px-3.5 py-3 border-[1.5px] border-[#e8eee9] rounded-xl text-[15px] outline-none focus:border-[#2da87d]"
-              style={{ color: '#1a2e26' }}
+              rows={nameFocused ? 3 : 1}
+              className="w-full px-3.5 py-3 border-[1.5px] border-[#e8eee9] rounded-xl text-[15px] outline-none focus:border-[#2da87d] resize-none overflow-hidden"
+              style={{
+                color: '#1a2e26',
+                transition: 'height 0.2s ease',
+                lineHeight: '1.5',
+              }}
             />
           </div>
 
