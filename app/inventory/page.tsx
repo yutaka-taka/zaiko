@@ -23,7 +23,7 @@ const dateColor = (s: string) => {
   const currentYM = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
   const in3months = new Date(today.getFullYear(), today.getMonth() + 3, 1);
   const thresholdYM = `${in3months.getFullYear()}-${String(in3months.getMonth() + 1).padStart(2, '0')}`;
-  if (s < currentYM) return '#c0392b';
+  if (s <= currentYM) return '#c0392b';
   if (s < thresholdYM) return '#e06b2a';
   return '#555';
 };
@@ -36,6 +36,8 @@ export default function InventoryPage() {
   const [selected, setSelected] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Item | null>(null);
   const [noSelAlert, setNoSelAlert] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,6 +53,19 @@ export default function InventoryPage() {
     if (sort === 'name') return a.name.localeCompare(b.name, 'ja');
     return a.expires_at.localeCompare(b.expires_at);
   });
+
+  const filtered = appliedQuery
+    ? sorted.filter(i => i.name.includes(appliedQuery))
+    : sorted;
+
+  const handleSearch = () => {
+    setAppliedQuery(searchInput.trim());
+  };
+
+  const handleClear = () => {
+    setSearchInput('');
+    setAppliedQuery('');
+  };
 
   const handleDelete = () => {
     if (selected === null) { setNoSelAlert(true); return; }
@@ -83,7 +98,7 @@ export default function InventoryPage() {
       </header>
 
       {/* 並べ替えバー（固定） */}
-      <div className="flex gap-2 px-4 py-3 bg-[#f7f9f8] flex-shrink-0">
+      <div className="flex gap-2 px-4 pt-3 pb-2 bg-[#f7f9f8] flex-shrink-0">
         {(['name', 'expires_at'] as SortKey[]).map(key => (
           <button
             key={key}
@@ -100,6 +115,31 @@ export default function InventoryPage() {
         ))}
       </div>
 
+      {/* 検索バー */}
+      <div className="flex gap-2 px-4 pb-2 bg-[#f7f9f8] flex-shrink-0 items-center">
+        <input
+          type="text"
+          value={searchInput}
+          onChange={e => setSearchInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSearch()}
+          placeholder="商品名で検索"
+          className="flex-1 px-3 py-2 border-[1.5px] border-[#e0ebe6] rounded-xl text-[13px] outline-none focus:border-[#2da87d] bg-white"
+          style={{ color: '#1a2e26' }}
+        />
+        <button
+          onClick={handleSearch}
+          className="w-9 h-9 flex items-center justify-center rounded-xl border-[1.5px] border-[#e0ebe6] bg-white flex-shrink-0 text-[#1a7a5e] text-lg"
+        >
+          🔍
+        </button>
+        <button
+          onClick={handleClear}
+          className="px-3 h-9 flex items-center justify-center rounded-xl border-[1.5px] border-[#e0ebe6] bg-white flex-shrink-0 text-[13px] font-semibold text-gray-500"
+        >
+          解除
+        </button>
+      </div>
+
       {/* テーブルヘッダー（固定） */}
       <div
         className="grid px-4 py-2.5 flex-shrink-0"
@@ -111,13 +151,13 @@ export default function InventoryPage() {
         }}
       >
         <span />
-        <span className="text-[11px] font-bold text-gray-500 text-center">商品名</span>
-        <span className="text-[11px] font-bold text-gray-500 text-center">有効期限</span>
+        <span className="text-[12px] font-bold text-gray-500 text-center">商品名</span>
+        <span className="text-[12px] font-bold text-gray-500 text-center">有効期限</span>
       </div>
 
       {/* スクロールリスト */}
       <div className="flex-1 overflow-y-auto py-1.5" style={{ scrollbarWidth: 'none' }}>
-        {sorted.map(item => (
+        {filtered.map(item => (
           <div
             key={item.id}
             onClick={() => setSelected(selected === item.id ? null : item.id)}
@@ -161,8 +201,10 @@ export default function InventoryPage() {
         ))}
         {loading ? (
           <p className="text-center text-gray-400 text-sm mt-12">読み込み中…</p>
-        ) : sorted.length === 0 ? (
-          <p className="text-center text-gray-400 text-sm mt-12">登録された商品がありません</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-gray-400 text-sm mt-12">
+            {appliedQuery ? '該当する商品がありません' : '登録された商品がありません'}
+          </p>
         ) : null}
       </div>
 
@@ -211,10 +253,10 @@ export default function InventoryPage() {
         >
           <div className="bg-white rounded-2xl p-6 w-full shadow-xl">
             <p className="text-[15px] font-bold text-[#1a2e26] text-center mb-1">以下の商品を削除しますか？</p>
-            <div className="bg-[#f7f9f8] rounded-xl p-4 my-4 space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">商品名</span>
-                <span className="font-semibold text-[#1a2e26]">{deleteTarget.name}</span>
+            <div className="bg-[#f7f9f8] rounded-xl p-4 my-4 space-y-2">
+              <div className="text-sm">
+                <span className="text-gray-500 mr-2">商品名</span>
+                <span className="font-semibold text-[#1a2e26] break-all">{deleteTarget.name}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">有効期限</span>

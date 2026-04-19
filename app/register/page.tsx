@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 const BarcodeScanner = lazy(() => import('@/components/BarcodeScanner'));
 const DatePicker = lazy(() => import('@/components/DatePicker'));
+const ExpiryScanner = lazy(() => import('@/components/ExpiryScanner'));
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function RegisterPage() {
   const [expiresAt, setExpiresAt] = useState('');
   const [scanning, setScanning] = useState(false);
   const [showCal, setShowCal] = useState(false);
+  const [showAI, setShowAI] = useState(false);
   const [loading, setLoading] = useState(false);
   const [confirmPast, setConfirmPast] = useState(false);
   const [nameFocused, setNameFocused] = useState(false);
@@ -97,10 +99,6 @@ export default function RegisterPage() {
               <span className="text-xs font-normal text-white/80">（バーコード読み取り）</span>
             </span>
           </button>
-          <p className="text-center text-[11px] text-gray-400 mt-2">
-            バーコードを読み取ると商品名が自動入力されます<br />
-            （30秒タイムアウト）
-          </p>
         </div>
 
         {/* 入力カード */}
@@ -141,7 +139,7 @@ export default function RegisterPage() {
                 readOnly
                 placeholder="YYYY/MM"
                 onClick={() => setShowCal(true)}
-                className="flex-1 px-3.5 py-3 border-[1.5px] border-[#e8eee9] rounded-xl text-[15px] outline-none cursor-pointer focus:border-[#2da87d]"
+                className="w-28 px-3.5 py-3 border-[1.5px] border-[#e8eee9] rounded-xl text-[15px] outline-none cursor-pointer focus:border-[#2da87d]"
                 style={{ color: expiresAt ? '#1a2e26' : '#bbb' }}
               />
               <button
@@ -149,6 +147,13 @@ export default function RegisterPage() {
                 className="w-11 h-11 border-[1.5px] border-[#e8eee9] rounded-xl flex items-center justify-center text-xl flex-shrink-0"
               >
                 📅
+              </button>
+              <button
+                onClick={() => setShowAI(true)}
+                className="w-11 h-11 border-[1.5px] border-[#e8eee9] rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-[13px]"
+                style={{ color: '#1a7a5e', letterSpacing: '0.05em' }}
+              >
+                ＡＩ
               </button>
             </div>
           </div>
@@ -197,6 +202,16 @@ export default function RegisterPage() {
         )}
       </Suspense>
 
+      {/* AIスキャナー */}
+      <Suspense fallback={null}>
+        {showAI && (
+          <ExpiryScanner
+            onResult={date => { setExpiresAt(date); setShowAI(false); }}
+            onClose={() => setShowAI(false)}
+          />
+        )}
+      </Suspense>
+
       {/* 過去日付確認ダイアログ */}
       {confirmPast && (
         <div
@@ -205,7 +220,7 @@ export default function RegisterPage() {
         >
           <div className="bg-white rounded-2xl p-6 w-full shadow-xl">
             <p className="text-[15px] font-bold text-[#1a2e26] text-center mb-6">
-              有効期限が先月以前ですがよいですか？
+              有効期限が先月以前ですが<br />よいですか？
             </p>
             <div className="flex gap-3">
               <button

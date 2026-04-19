@@ -17,7 +17,7 @@ export default function DatePicker({ value, onChange, onClose }: Props) {
 
   const [year, setYear] = useState(initYear);
   const currentYear = today.getFullYear();
-  const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear + i);
+  const yearOptions = Array.from({ length: 12 }, (_, i) => currentYear + i);
 
   const toStr = (m: number) =>
     `${year}-${String(m + 1).padStart(2, '0')}`;
