@@ -24,7 +24,7 @@ export default function ExpiryScanner({ onResult, onClose }: Props) {
     const start = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' },
+          video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
         });
         streamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
@@ -55,12 +55,27 @@ export default function ExpiryScanner({ onResult, onClose }: Props) {
     setCapturing(true);
     setError('');
 
-    const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
+    const video = videoRef.current;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
 
-    const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+    // ガイド枠（幅80%・高さ28%・中央）に対応するピクセル領域を切り抜く
+    const cropX = Math.floor(vw * 0.1);
+    const cropY = Math.floor(vh * 0.36);
+    const cropW = Math.floor(vw * 0.8);
+    const cropH = Math.floor(vh * 0.28);
+
+    // OCR精度向上のため最低1200px幅に拡大
+    const scale = Math.max(1, 1200 / cropW);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.floor(cropW * scale);
+    canvas.height = Math.floor(cropH * scale);
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) { setCapturing(false); return; }
+    ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
+
+    const base64 = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
 
     try {
       const res = await fetch('/api/read-expiry', {
@@ -70,7 +85,7 @@ export default function ExpiryScanner({ onResult, onClose }: Props) {
       });
 
       if (!res.ok) {
-        setError('有効期限が読み取れませんでした');
+        setError('有効期限が読み取れませんでした　枠を合わせて再度撮影してください');
         setCapturing(false);
         return;
       }
@@ -112,12 +127,12 @@ export default function ExpiryScanner({ onResult, onClose }: Props) {
           />
         </div>
         <p className="absolute bottom-4 left-0 right-0 text-center text-white/70 text-xs">
-          有効期限の部分に枠を合わせてください
+          有効期限の数字を枠いっぱいに合わせて撮影
         </p>
       </div>
 
       {error && (
-        <p className="text-red-400 text-sm text-center py-2 flex-shrink-0">{error}</p>
+        <p className="text-red-400 text-sm text-center py-2 px-4 flex-shrink-0">{error}</p>
       )}
 
       <div className="flex-shrink-0 flex justify-center py-6">
